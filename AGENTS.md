@@ -6,7 +6,15 @@
 - Prefer the simplest solution that satisfies the requirement.
 - Do not add dependencies unless they are necessary.
 - Verify your work before declaring the task complete.
-- Do not push or deploy unless the user explicitly requests it.
+- Do not push, deploy, or merge unless the user explicitly authorizes that action.
+
+## Delivery flow
+
+- Normal delivery follows: task branch → pull request → verification → explicit human authorization → merge.
+- Start changes on a task branch from current `main`; do not deliver changes by pushing directly to `main`.
+- Target pull requests at `main`. Run relevant local checks before pushing, then review the diff and PR CI results before requesting merge authorization.
+- Stop before merge until verification passes and the user explicitly authorizes merging. Permission to push or open a PR is not permission to merge.
+- Merging to `main` triggers Pages deployment under the current configuration; make that consequence clear when seeking authorization.
 
 ## Verification and QA
 

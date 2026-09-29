@@ -10,6 +10,15 @@ The user primarily acts as product/business owner and factory operator: choosing
 priorities, clarifying requirements, accepting results, and authorizing delivery.
 Normal operation should not require the user to write implementation code.
 
+The intended delivery process is: business requirement → agent work on a task
+branch from current `main` → pull request to `main` → verification → explicit
+human authorization → merge → deployment. Run relevant local checks before
+pushing and review CI results on the PR. Push, merge, and deployment each require
+explicit authorization; permission to open a PR does not authorize merging.
+Merging to `main` triggers Pages deployment under the current configuration.
+This is an operating policy; required-check enforcement in GitHub remains a
+separate migration step.
+
 Today this is an agent-assisted static website with basic CI and human acceptance,
 not an autonomous factory. The website is a small proving ground for improving the
 development process. Its “Run Factory” button updates a message and a local counter;
@@ -28,7 +37,7 @@ Keep durable context in this repository rather than relying on chat history:
 Source files and Git history establish implemented behavior. GitHub settings and
 run results are external state: record observations with their provenance and
 recheck them when relevant. Documentation does not grant permission to commit,
-push, deploy, or implement a suggested next step.
+push, merge, deploy, or implement a suggested next step.
 
 ## Recovering context in a new session
 
@@ -42,4 +51,3 @@ push, deploy, or implement a suggested next step.
 
 Keep architecture current as the system changes. Append only meaningful journal
 milestones with evidence; avoid copying conversation transcripts or routine logs.
-
