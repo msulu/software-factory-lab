@@ -21,10 +21,14 @@ The page initially shows “Factory is running” and “Orders processed: 0”.
 activation of “Run Factory” displays “Order received!” and increments the counter.
 The counter is in memory and resets on reload; there is no backend or order storage.
 
-Work proceeds from requirements through implementation, relevant local checks,
-browser QA, and human acceptance. Commit and push only when requested. Browser
-failures require investigation: distinguish product defects from test-tool or
-environment problems before changing working code.
+The intended delivery flow is requirements → implementation on a task branch
+from current `main` → PR to `main` → verification → explicit human authorization
+→ merge → deployment. Run relevant local checks before pushing; review PR CI
+results, applicable browser QA, and human acceptance before merge. Commit and
+push only when requested; push or PR authorization does not authorize merge or
+deployment. Merging to `main` triggers Pages deployment. Browser failures require
+investigation: distinguish product defects from test-tool or environment problems
+before changing working code.
 
 Run `python3 scripts/check_site.py` from the repository root. It checks nonempty
 HTML, the title and heading, initial status and counter, button label, required
@@ -46,7 +50,9 @@ of current GitHub settings or future run results.
 
 **CI and deployment currently run independently. Failed CI does not block Pages
 deployment.** The workflow also does not itself require checks before merging;
-branch protection or ruleset enforcement has not been verified.
+read-only GitHub API inspection on 2026-09-29 found `main` unprotected, no required
+checks, and no repository rulesets. The branch/PR policy above is not yet enforced
+by GitHub; configuring required checks remains a separate step.
 
 CI does not execute JavaScript, verify mouse/keyboard behavior, check responsive
 rendering, comprehensively audit accessibility, or test the deployed site. Browser
@@ -62,4 +68,3 @@ by session and environment.
 
 Choose the next improvement from actual needs; none of these options authorizes
 implementation or a change to deployment configuration.
-
