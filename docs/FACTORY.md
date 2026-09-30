@@ -16,8 +16,9 @@ human authorization → merge → deployment. Run relevant local checks before
 pushing and review CI results on the PR. Push, merge, and deployment each require
 explicit authorization; permission to open a PR does not authorize merging.
 Merging to `main` triggers Pages deployment under the current configuration.
-Main-branch protection and the required static validation check were externally
-verified by the user during the previous delivery cycle, reported on 2026-09-30.
+Main-branch protection requires both **Validate static website** and
+**Verify browser interaction**, with branches up to date before merge. The agent
+verified this live configuration after the authorized promotion on 2026-09-30.
 See `ARCHITECTURE.md` and `JOURNAL.md` for settings, provenance, and limitations.
 
 Today this is an agent-assisted static website with static and Chromium interaction
@@ -27,8 +28,8 @@ development process. Its “Run Factory” button updates a message and a local 
 it does not execute an automated software delivery pipeline.
 
 Browser Verification v1 checks the existing interaction and reload behavior with
-Playwright. It is a separate CI job, not a required merge check yet; promoting it
-requires explicit authorization and an external branch-protection change.
+Playwright. Its separate CI job is now a required merge check alongside static
+validation. Explicit human merge authorization remains necessary.
 
 ## Source of truth
 
