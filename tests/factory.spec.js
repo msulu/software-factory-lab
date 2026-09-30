@@ -1,55 +1,113 @@
 const { test, expect } = require('@playwright/test');
 
-test('factory activations increment exactly and reload resets state', async ({ page }) => {
+test('intake receives requirements without execution and reload clears orders', async ({ page }) => {
   const pageErrors = [];
   page.on('pageerror', error => pageErrors.push(error.message));
+  const input = page.getByRole('textbox', { name: 'Business requirement', exact: true });
+  const submit = page.getByRole('button', { name: 'Submit order', exact: true });
+  const receipts = page.locator('#orders > li');
+  const disclosure = page.locator('#intake-disclosure');
+  const disclosureText = 'Orders are received only in the current browser session in this tab. Reloading or closing this page clears them. Planning and execution have NOT started.';
 
-  const button = page.getByRole('button', { name: 'Run Factory', exact: true });
-  const status = page.locator('#status');
-  const counter = page.locator('#order-count');
-
-  async function expectState(message, count) {
-    await expect(status).toBeVisible();
-    await expect(status).toHaveText(message);
-    await expect(counter).toBeVisible();
-    await expect(counter).toHaveText(`Orders processed: ${count}`);
-    expect(pageErrors, 'No uncaught page JavaScript errors').toEqual([]);
+  async function expectReceipt(index, id, requirement) {
+    await expect(receipts.nth(index)).toBeVisible();
+    await expect(receipts.nth(index).getByRole('heading')).toHaveText(`${id} · Received`);
+    // textContent preserves internal whitespace, unlike normalized text assertions.
+    await expect(receipts.nth(index).locator('.requirement')).toHaveJSProperty('textContent', requirement);
   }
 
-  await test.step('expected initial state', async () => {
+  await test.step('initial empty state and permanent disclosure', async () => {
     const response = await page.goto('/');
     expect(response.status()).toBe(200);
     await expect(page).toHaveTitle('Software Factory');
     await expect(page.getByRole('heading', { name: 'Software Factory', exact: true })).toBeVisible();
-    await expect(button).toBeVisible();
-    await expect(button).toBeEnabled();
-    await expectState('Factory is running', 0);
+    await expect(input).toBeVisible();
+    await expect(input).toBeEmpty();
+    await expect(input).not.toHaveAttribute('maxlength');
+    await expect(submit).toBeEnabled();
+    await expect(page.locator('#status')).toHaveText('Ready to receive an order.');
+    await expect(page.locator('#empty-orders')).toBeVisible();
+    await expect(receipts).toHaveCount(0);
+    await expect(disclosure).toBeVisible();
+    await expect(disclosure).toHaveText(disclosureText);
   });
 
-  await test.step('first activation', async () => {
-    await button.click();
-    await expectState('Order received!', 1);
+  await test.step('empty and whitespace requirements do not create orders', async () => {
+    for (const invalid of ['', ' \n\t ']) {
+      await input.fill(invalid);
+      await submit.click();
+      await expect(page.getByRole('alert')).toHaveText('Enter a business requirement.');
+      await expect(input).toHaveAttribute('aria-invalid', 'true');
+      await expect(input).toBeFocused();
+      await expect(input).toHaveValue(invalid);
+      await expect(receipts).toHaveCount(0);
+    }
   });
 
-  await test.step('repeated activation increments exactly once', async () => {
-    await button.click();
-    await expectState('Order received!', 2);
+  const first = 'Let customers choose a delivery date.\nKeep their  preferred time.';
+  await test.step('first valid requirement is trimmed and received', async () => {
+    await input.fill(`  ${first} \n`);
+    await submit.click();
+    await expect(receipts).toHaveCount(1);
+    await expectReceipt(0, 'ORD-1', first);
+    await expect(input).toBeEmpty();
+    await expect(input).toBeFocused();
+    await expect(input).not.toHaveAttribute('aria-invalid');
+    await expect(page.getByRole('alert')).toBeEmpty();
+    await expect(page.locator('#empty-orders')).toBeHidden();
+    await expect(page.locator('#status')).toHaveText('Order ORD-1 received. Planning and execution have NOT started.');
   });
 
-  await test.step('keyboard activation', async () => {
-    await button.focus();
-    await expect(button).toBeFocused();
-    await page.keyboard.press('Enter');
-    await expectState('Order received!', 3);
+  const second = '<img src=x onerror="throw new Error(\'unsafe HTML\')">\n<b>Show this literally</b>';
+  await test.step('keyboard submission preserves earlier receipts and literal multiline text', async () => {
+    await input.fill(second.split('\n')[0]);
+    await input.press('End');
+    await input.press('Enter');
+    await input.pressSequentially(second.split('\n')[1]);
+    await expect(input).toHaveValue(second);
+    await expect(receipts).toHaveCount(1);
+    await input.press('Tab');
+    await expect(submit).toBeFocused();
+    await submit.press('Enter');
+    await expect(receipts).toHaveCount(2);
+    await expectReceipt(0, 'ORD-1', first);
+    await expectReceipt(1, 'ORD-2', second);
+    await expect(receipts.locator('img, b')).toHaveCount(0);
+    await expect(input).toBeFocused();
+    await expect(disclosure).toBeVisible();
+    await expect(disclosure).toHaveText(disclosureText);
   });
 
-  await test.step('reload resets state in the same browser context', async () => {
+  await test.step('resubmission without new text creates no order', async () => {
+    await submit.click();
+    await expect(page.getByRole('alert')).toHaveText('Enter a business requirement.');
+    await expect(receipts).toHaveCount(2);
+    await expectReceipt(0, 'ORD-1', first);
+    await expectReceipt(1, 'ORD-2', second);
+  });
+
+  await test.step('long requirements have no arbitrary length limit', async () => {
+    const longRequirement = 'Business outcome '.repeat(400).trim();
+    await input.fill(longRequirement);
+    await submit.click();
+    await expect(receipts).toHaveCount(3);
+    await expectReceipt(2, 'ORD-3', longRequirement);
+  });
+
+  await test.step('reload clears receipts and draft in the same browser context', async () => {
+    await input.fill('An unsubmitted draft');
     await page.reload();
-    await expectState('Factory is running', 0);
+    await expect(receipts).toHaveCount(0);
+    await expect(page.locator('#empty-orders')).toBeVisible();
+    await expect(page.locator('#status')).toHaveText('Ready to receive an order.');
+    await expect(page.getByRole('alert')).toBeEmpty();
+    await expect(input).toBeEmpty();
+    await expect(disclosure).toHaveText(disclosureText);
+    await input.fill('A new session requirement');
+    await submit.click();
+    await expect(receipts).toHaveCount(1);
+    await expectReceipt(0, 'ORD-1', 'A new session requirement');
   });
 
-  await test.step('activation works again after reload', async () => {
-    await button.click();
-    await expectState('Order received!', 1);
-  });
+  expect(pageErrors, 'No uncaught page JavaScript errors').toEqual([]);
 });

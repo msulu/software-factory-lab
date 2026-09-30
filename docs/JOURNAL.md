@@ -170,3 +170,35 @@ This strengthens the pre-merge gate. Post-merge CI and Pages still run independe
 and explicit human merge authorization is still required. The accompanying memory
 update is delivered through its own protected PR; promotion does not authorize
 merging that documentation PR.
+
+## Factory Order Intake v1 — 2026-09-30
+
+Replaced the Run Factory demonstration with the first business-domain capability:
+a requirement form creates page-memory orders with sequential session identities,
+trimmed requirement text, and status Received. Visible receipts preserve earlier
+submissions. Empty/whitespace input is rejected accessibly; no arbitrary length cap
+or business-quality assessment is applied. Reload clears orders and restarts IDs.
+
+Decision: distinguish receipt from execution explicitly in permanent UI copy.
+No persistence, backend, planning, model/agent calls, or repository automation is
+introduced. This establishes an order record and acceptance boundary before later
+storage or execution work. The existing dependency-free application and CI jobs remain.
+
+Agent-observed local verification:
+
+- PASS: updated static checks and Chromium intake scenario, including validation,
+  sequential identities, prior receipts, reload, keyboard/focus behavior, multiline
+  and literal HTML-like text, long input, and no observed uncaught JavaScript errors.
+- PASS: commissioning rejected a false execution disclosure in static validation,
+  incorrect identity numbering in Chromium, and whitespace acceptance in Chromium.
+  Each fault returned exit 1 at the intended assertion; original product bytes were
+  restored after every injection. No intentional fault is delivered.
+- PASS: desktop and 375-pixel mobile screenshots inspected for initial/error/receipt
+  layouts; mobile receipt layout had no horizontal overflow.
+- The first sandboxed browser run failed to bind localhost (PermissionError).
+  The permitted run passed without product changes: an environment restriction.
+
+A read-only GitHub protection check during this task confirmed both existing named
+CI checks remain required with strict/up-to-date checking. No settings were changed.
+Local results do not establish PR CI or deployed behavior. Delivery stops at the PR
+pending separate human merge authorization; intake does not itself execute delivery.
