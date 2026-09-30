@@ -107,3 +107,42 @@ Keep external observations dated and attributed, and reconcile them with current
 architecture when learned. Conversation history must not be the only record of
 important project knowledge. Fresh-session recovery experiments are described in
 `COLLABORATION.md`; their outcomes remain to be verified after delivery.
+
+## Browser Verification v1 — commissioned 2026-09-30
+
+Added one Playwright Test scenario in Chromium against the actual static page,
+served locally by Python's standard-library HTTP server. It checks initial state,
+exact increments from mouse and Enter activation, reset on reload in the same
+browser context, and successful activation afterward. It also rejects observed
+uncaught page JavaScript errors. Product behavior and the static validator are
+unchanged. Playwright is development-only, pinned with an npm lockfile.
+
+Agent-observed local commissioning on macOS with Node 24 and Playwright 1.63.0:
+
+- PASS: the real implementation completed the browser scenario.
+- PASS: temporarily changing the increment from 1 to 2 failed on first activation
+  (expected 1, received 2; test exit 1).
+- PASS: temporarily storing/restoring the counter with localStorage failed at the
+  reload assertion (expected 0, received 3; test exit 1).
+- PASS: an injected uncaught microtask error failed the JavaScript-error assertion
+  even though the visible interaction updated successfully (test exit 1).
+- PASS: the original page bytes were restored after each injection; no intentional
+  fault is part of the delivered change. Failure screenshots and traces were produced.
+- PASS: a clean lockfile install, all 11 static checks, the final Chromium scenario,
+  and the diff check. The product page and validator match the base revision.
+
+The initial sandboxed run could not bind the loopback HTTP port (PermissionError).
+Running with the required environment permission passed without product changes;
+this was an environment failure, not an interaction defect.
+
+The separate **Verify browser interaction** CI job installs Chromium and runs the
+same test, retaining available failure artifacts for seven days. The existing
+**Validate static website** job is unchanged. Local results do not establish a
+GitHub Actions result; inspect the PR's checks before delivery authorization.
+
+The agent read GitHub's main branch-protection API on 2026-09-30 and confirmed that
+only **Validate static website** is required, with strict/up-to-date checks,
+administrator enforcement, zero required approving reviews, and force pushes and
+deletion disabled. No settings were changed. The browser job remains non-required;
+promotion needs separate explicit authorization. Merge and deployment are not
+authorized by this implementation task.
