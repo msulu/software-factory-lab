@@ -23,9 +23,11 @@ See `ARCHITECTURE.md` and `JOURNAL.md` for settings, provenance, and limitations
 
 Today this is an agent-assisted static website with static and Chromium interaction
 checks in CI and human acceptance, not an autonomous factory. The website is a
-small proving ground for improving the
-development process. Its “Run Factory” button updates a message and a local counter;
-it does not execute an automated software delivery pipeline.
+small proving ground for improving the development process. Factory Order Intake v1
+accepts a natural-language business requirement and displays a receipt with a
+session identity (ORD-1, ORD-2, ...), trimmed text, and status Received. Orders exist
+only in page memory and disappear on reload. Receiving an order starts no planning
+or execution; there are no model calls, agents, backend, or persistence in the app.
 
 Browser Verification v1 checks the existing interaction and reload behavior with
 Playwright. Its separate CI job is now a required merge check alongside static

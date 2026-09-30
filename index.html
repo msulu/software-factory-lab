@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Software Factory — ready to run.">
+    <meta name="description" content="Software Factory — receive business requirements as orders.">
     <title>Software Factory</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23172234'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='sans-serif' font-size='14' font-weight='bold' fill='white'%3ESF%3C/text%3E%3C/svg%3E">
     <style>
@@ -21,9 +21,9 @@
       }
       main {
         width: 100%;
-        max-width: 34rem;
+        max-width: 46rem;
         padding: clamp(1.5rem, 6vw, 3.5rem);
-        text-align: center;
+        text-align: left;
         background: #fff;
         border: 1px solid #dce3ec;
         border-top: 4px solid #2563eb;
@@ -37,8 +37,17 @@
         letter-spacing: -0.04em;
       }
       p { margin: 1.25rem 0 2rem; color: #475569; font-size: 1.125rem; line-height: 1.5; }
-      #order-count { margin: 1.5rem 0 0; }
+      label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+      textarea { width: 100%; min-height: 9rem; padding: 0.75rem; font: inherit; border: 1px solid #64748b; border-radius: 0.5rem; resize: vertical; }
+      textarea:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
+      #requirement-hint { margin: 0 0 0.75rem; }
+      #requirement-error { color: #b91c1c; margin: 0.5rem 0; }
+      #orders { padding: 0; list-style: none; }
+      #orders li { border-top: 1px solid #dce3ec; padding: 1rem 0; }
+      #orders h3 { margin: 0; }
+      .requirement { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0.75rem 0 0; }
       button {
+        margin-top: 1rem;
         min-height: 3rem;
         max-width: 100%;
         padding: 0.875rem 1.75rem;
@@ -58,16 +67,58 @@
   <body>
     <main>
       <h1>Software Factory</h1>
-      <p id="status" role="status" aria-live="polite">Factory is running</p>
-      <button id="run-factory" type="button">Run Factory</button>
-      <p id="order-count" role="status" aria-live="polite">Orders processed: 0</p>
+      <p id="intake-disclosure">Orders are received only in the current browser session in this tab. Reloading or closing this page clears them. Planning and execution have NOT started.</p>
+      <form id="order-form" novalidate autocomplete="off">
+        <label for="requirement">Business requirement</label>
+        <p id="requirement-hint">Describe the outcome you want.</p>
+        <textarea id="requirement" name="requirement" aria-describedby="requirement-hint requirement-error" aria-required="true"></textarea>
+        <p id="requirement-error" role="alert"></p>
+        <button id="submit-order" type="submit">Submit order</button>
+      </form>
+      <p id="status" role="status" aria-live="polite">Ready to receive an order.</p>
+      <section aria-labelledby="orders-heading">
+        <h2 id="orders-heading">Orders received this session</h2>
+        <p id="empty-orders">No orders received yet.</p>
+        <ul id="orders"></ul>
+      </section>
     </main>
     <script>
-      let ordersProcessed = 0;
-      document.getElementById('run-factory').addEventListener('click', () => {
-        ordersProcessed += 1;
-        document.getElementById('status').textContent = 'Order received!';
-        document.getElementById('order-count').textContent = `Orders processed: ${ordersProcessed}`;
+      const orders = [];
+      const requirementInput = document.getElementById('requirement');
+      const error = document.getElementById('requirement-error');
+      const status = document.getElementById('status');
+
+      // Prevent browser form restoration from carrying a draft across reloads.
+      requirementInput.value = '';
+
+      document.getElementById('order-form').addEventListener('submit', event => {
+        event.preventDefault();
+        const requirement = requirementInput.value.trim();
+        if (!requirement) {
+          error.textContent = 'Enter a business requirement.';
+          requirementInput.setAttribute('aria-invalid', 'true');
+          requirementInput.focus();
+          return;
+        }
+
+        const order = { id: `ORD-${orders.length + 1}`, requirement, status: 'Received' };
+        orders.push(order);
+
+        const receipt = document.createElement('li');
+        const heading = document.createElement('h3');
+        heading.textContent = `${order.id} · ${order.status}`;
+        const text = document.createElement('p');
+        text.className = 'requirement';
+        text.textContent = order.requirement;
+        receipt.append(heading, text);
+        document.getElementById('orders').append(receipt);
+        document.getElementById('empty-orders').hidden = true;
+
+        error.textContent = '';
+        requirementInput.removeAttribute('aria-invalid');
+        status.textContent = `Order ${order.id} received. Planning and execution have NOT started.`;
+        requirementInput.value = '';
+        requirementInput.focus();
       });
     </script>
   </body>

@@ -66,14 +66,32 @@ def main():
 
     check('Page title is "Software Factory"', matches("title", text="Software Factory"))
     check('Heading is "Software Factory"', matches("h1", text="Software Factory"))
-    check('Initial status is "Factory is running"',
-          matches(element_id="status", text="Factory is running"))
-    check('Button is labeled "Run Factory"',
-          matches("button", "run-factory", "Run Factory"))
-    check('Initial counter is "Orders processed: 0"',
-          matches(element_id="order-count", text="Orders processed: 0"))
+    check("Initial intake status", matches("p", "status", "Ready to receive an order."))
+    check("Submit order action", matches("button", "submit-order", "Submit order"))
+    check("Initial empty receipts", matches("p", "empty-orders", "No orders received yet.")
+          and matches("ul", "orders", ""))
+    check("Session and execution disclosure", matches("p", "intake-disclosure",
+          "Orders are received only in the current browser session in this tab. "
+          "Reloading or closing this page clears them. Planning and execution have NOT started."))
+    check("Business requirement label", any(
+        element["tag"] == "label" and element["attrs"].get("for") == "requirement"
+        and element["text"].strip() == "Business requirement" for element in page.elements
+    ))
+    check("Multiline requirement without a length cap", any(
+        element["tag"] == "textarea" and element["attrs"].get("id") == "requirement"
+        and "maxlength" not in element["attrs"]
+        and "requirement-error" in element["attrs"].get("aria-describedby", "").split()
+        for element in page.elements
+    ))
+    check("Accessible validation message", any(
+        element["attrs"].get("id") == "requirement-error"
+        and element["attrs"].get("role") == "alert" for element in page.elements
+    ))
+    check("Submission form", matches("form", "order-form"))
 
-    for element_id in ("status", "run-factory", "order-count"):
+    for element_id in ("status", "submit-order", "order-form", "requirement",
+                       "requirement-hint", "requirement-error", "intake-disclosure",
+                       "orders-heading", "empty-orders", "orders"):
         count = sum(element["attrs"].get("id") == element_id for element in page.elements)
         check(f'ID "{element_id}" exists exactly once', count == 1)
 

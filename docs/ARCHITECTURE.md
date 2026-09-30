@@ -19,9 +19,26 @@
 
 ## Website and verification flow
 
-The page initially shows “Factory is running” and “Orders processed: 0”. Each
-activation of “Run Factory” displays “Order received!” and increments the counter.
-The counter is in memory and resets on reload; there is no backend or order storage.
+Factory Order Intake v1 replaces the demonstration button with a labelled multiline
+Business requirement field and Submit order action. Empty or whitespace-only input
+shows an accessible error and creates no order. All other text is accepted without
+quality assessment or an arbitrary length cap. Surrounding whitespace is trimmed;
+internal whitespace and line breaks are retained.
+
+The page keeps an `orders` array of `{ id, requirement, status }` records in memory.
+Identities are ORD-1, ORD-2, and so on within that page session; the only status is
+Received. Each successful submission appends a visible receipt without replacing
+older ones, clears the input/error, and returns focus to the field. Requirement
+text is rendered with `textContent`, never interpreted as HTML. An invalid submission
+preserves the input and earlier receipts, marks the field invalid, and focuses it.
+
+Permanent copy explains that orders belong only to the current browser session in
+this tab and that planning/execution have NOT started. Reload clears orders and the
+draft and restarts numbering. Other tabs have independent state. There is no backend,
+browser storage, AI call, agent invocation, planning, repository automation, or
+simulated execution. The form's draft and validation message are UI state, not orders.
+Persistence, globally unique identities, and any execution lifecycle are later steps;
+receipt currently means acceptance into local page memory only.
 
 The intended delivery flow is requirements → implementation on a task branch
 from current `main` → PR to `main` → required CI and verification → explicit human authorization
@@ -33,8 +50,9 @@ investigation: distinguish product defects from test-tool or environment problem
 before changing working code.
 
 Run `python3 scripts/check_site.py` from the repository root. It checks nonempty
-HTML, the title and heading, initial status and counter, button label, required
-unique IDs, document language, and mobile viewport metadata. It prints PASS/FAIL
+HTML, the title and heading, initial intake/empty state, submission form and label,
+multiline input without a length cap, accessible error association, permanent
+session/execution disclosure, required unique IDs, language, and viewport metadata. It prints PASS/FAIL
 for checks and exits nonzero on failure. It is not a full HTML validator.
 
 ### Browser Verification v1
@@ -59,14 +77,15 @@ repository on `http://127.0.0.1:8765`. It waits for readiness and refuses to reu
 existing server; free port 8765 before running. No build step or application
 dependency was added. The browser download and Node packages are verification tools.
 
-One isolated Chromium test verifies the title, heading, visible/enabled button,
-initial message and count, two mouse activations (counts 1 and 2), Enter activation
-(count 3), reload resetting message/count, and activation after reload (count 1).
-Reload uses the same browser context so stored counts cannot hide behind a fresh
-session. Uncaught page JavaScript errors observed during these steps fail the test.
-The test uses real browser input and waiting assertions, not direct handler calls
-or fixed sleeps. There is one worker, a 30-second test timeout, five-second assertion
-timeouts, and no automatic retries.
+One isolated Chromium test verifies initial state and permanent disclosure, empty
+and whitespace-only rejection, trimmed multiline receipts with sequential identities
+and Received status, preservation of previous orders, literal HTML-like text,
+keyboard submission, focus/error recovery, resubmission without new text, and a
+requirement longer than 5,000 characters. Enter in the textarea inserts a newline.
+Reload uses the same browser context and verifies cleared orders/draft plus restarted
+numbering. Observed uncaught page JavaScript errors fail the test. It uses real browser
+input and waiting assertions, not direct handler calls or fixed sleeps. There is one
+worker, a 30-second test timeout, five-second assertion timeouts, and no automatic retries.
 
 Failures retain a screenshot, trace, and available error context in `test-results/`.
 Open a trace with `npx playwright show-trace <path-to-trace.zip>`. CI uploads available
@@ -79,7 +98,7 @@ assertions; an ambiguous failure is not permission to change working product cod
 
 Tracked configuration: `.github/workflows/ci.yml` runs on every branch push and on
 pull requests opened, synchronized, or reopened. The existing Ubuntu job
-**Validate static website** still runs the unchanged Python validator. A separate
+**Validate static website** runs the Python static validator. A separate
 Ubuntu job, **Verify browser interaction**, installs Node 24, uses `npm ci`, installs
 Chromium with its system libraries, and runs `npm run test:browser`. Both use
 read-only repository permissions. Browser setup adds downloads and CI time but no
