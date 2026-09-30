@@ -20,10 +20,15 @@ Main-branch protection and the required static validation check were externally
 verified by the user during the previous delivery cycle, reported on 2026-09-30.
 See `ARCHITECTURE.md` and `JOURNAL.md` for settings, provenance, and limitations.
 
-Today this is an agent-assisted static website with basic CI and human acceptance,
-not an autonomous factory. The website is a small proving ground for improving the
+Today this is an agent-assisted static website with static and Chromium interaction
+checks in CI and human acceptance, not an autonomous factory. The website is a
+small proving ground for improving the
 development process. Its “Run Factory” button updates a message and a local counter;
 it does not execute an automated software delivery pipeline.
+
+Browser Verification v1 checks the existing interaction and reload behavior with
+Playwright. It is a separate CI job, not a required merge check yet; promoting it
+requires explicit authorization and an external branch-protection change.
 
 ## Source of truth
 

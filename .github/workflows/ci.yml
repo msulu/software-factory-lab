@@ -17,3 +17,27 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check website
         run: python3 scripts/check_site.py
+
+  verify-browser:
+    name: Verify browser interaction
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install verification dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Check browser interaction
+        run: npm run test:browser
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-diagnostics
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: ignore
