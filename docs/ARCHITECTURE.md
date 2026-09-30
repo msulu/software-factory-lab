@@ -6,6 +6,7 @@
 | --- | --- |
 | Codex or another agent | Inspect, plan, implement, verify, and report within the authorized scope. |
 | `AGENTS.md` | Define repository work and verification rules. |
+| `docs/` memory and PR template | Preserve context, guide session handoff, and expose each task's memory-impact assessment; no automated memory enforcement. |
 | `index.html` | Self-contained HTML, CSS, and JavaScript; no application dependencies or build step. |
 | Git | Record reviewable changes and version history. |
 | GitHub | Host the shared repository and support collaboration. |
@@ -22,7 +23,7 @@ activation of “Run Factory” displays “Order received!” and increments th
 The counter is in memory and resets on reload; there is no backend or order storage.
 
 The intended delivery flow is requirements → implementation on a task branch
-from current `main` → PR to `main` → verification → explicit human authorization
+from current `main` → PR to `main` → required CI and verification → explicit human authorization
 → merge → deployment. Run relevant local checks before pushing; review PR CI
 results, applicable browser QA, and human acceptance before merge. Commit and
 push only when requested; push or PR authorization does not authorize merge or
@@ -42,17 +43,27 @@ pull requests opened, synchronized, or reopened. One Ubuntu job checks out the
 repository and runs the validator with read-only repository permissions. No
 package installation or browser testing is configured.
 
-External configuration: GitHub Pages was observed configured to deploy from
-`main`, repository root. This setting is not defined by the tracked CI workflow.
-The user verified successful CI and Pages runs for the first CI push; details and
-evidence provenance are in the journal. Historical observations are not a guarantee
-of current GitHub settings or future run results.
+External configuration, verified by the user in the previous delivery cycle and
+reported on 2026-09-30:
 
-**CI and deployment currently run independently. Failed CI does not block Pages
-deployment.** The workflow also does not itself require checks before merging;
-read-only GitHub API inspection on 2026-09-29 found `main` unprotected, no required
-checks, and no repository rulesets. The branch/PR policy above is not yet enforced
-by GitHub; configuring required checks remains a separate step.
+- `main` branch protection is enabled and changes require a pull request.
+- Required status check: **Validate static website**. Branches must be up to date
+  before merge.
+- Required approving reviews: **0**. Protection is enforced for administrators.
+- Force pushes and branch deletion are disallowed.
+- GitHub Pages remains configured from `main`, repository root.
+
+PR #1 merged through this protected flow as `26655a0`; the user verified that
+post-merge CI and Pages deployment both passed. These are externally verified
+historical observations supplied by the user, not settings defined by the workflow
+or independently rechecked during this documentation update. They supersede the
+earlier observation that `main` was unprotected. Recheck external configuration
+when a task depends on its current state; see `JOURNAL.md` for provenance.
+
+**The enforced quality gate is before merge.** CI and Pages still run independently
+after merge; a failed post-merge CI run does not itself block Pages deployment.
+Zero required approving reviews does not remove the agent policy requiring explicit
+human merge authorization. The workflow alone does not configure branch protection.
 
 CI does not execute JavaScript, verify mouse/keyboard behavior, check responsive
 rendering, comprehensively audit accessibility, or test the deployed site. Browser
@@ -62,8 +73,7 @@ by session and environment.
 ## Possible next steps — not commitments
 
 - Add reliable real-browser interaction checks to CI.
-- Require successful checks before merging through GitHub rules.
-- Make deployment depend on successful verification.
+- Make post-merge deployment depend on successful verification.
 - Add post-deployment smoke checks.
 
 Choose the next improvement from actual needs; none of these options authorizes

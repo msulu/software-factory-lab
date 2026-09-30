@@ -64,3 +64,46 @@ These are manually verified GitHub UI results supplied by the user, not results
 inferred from the YAML or independently fetched during documentation creation.
 CI success and Pages success were separate outcomes: failed CI does not yet block
 deployment. Connecting those gates is a possible future architectural step.
+
+## Protected PR-based delivery — PR #1 / `26655a0`
+
+Repository evidence: commit `8630268` documented the PR delivery policy, and
+[PR #1](https://github.com/msulu/software-factory-lab/pull/1) merged as `26655a0`
+on 2026-09-29.
+
+External evidence: on 2026-09-30, the user supplied verified observations from the
+previous delivery cycle:
+
+- `main` protection was enabled, requiring a PR and the **Validate static website**
+  status check, with branches up to date before merge.
+- Required approving reviews were **0**; protection applied to administrators.
+- Force pushes and branch deletion were disallowed.
+- PR #1 merged successfully through the protected flow.
+- Post-merge CI: **PASS**. GitHub Pages deployment: **PASS**.
+- Pages remained configured from `main` / repository root.
+
+These settings and run outcomes were verified externally by the user, not inferred
+from Git or the workflow and not independently fetched for this entry. The report
+date is not a claim about the exact time settings changed. It supersedes the older
+unprotected-main observation. CI and Pages still run independently after merge;
+the enforced quality gate is before merge. Explicit human merge authorization
+remains mandatory even though GitHub requires no approving reviews.
+
+## Self-Maintaining Factory Memory v1
+
+Lesson: repository memory became stale immediately after an externally configured
+architecture change. The delivery policy was tracked, but the completed protection
+setup and successful protected delivery were missing from current-state memory.
+A later session therefore recovered an outdated description of the merge gate.
+
+Decision: make memory maintenance part of each task. Assess `Memory impact: YES/NO`
+with a reason during planning and against the final diff; update affected durable
+memory in the same PR for YES. Keep trivial changes free of documentation churn.
+Use the collaboration agreement and revision-stamped handoff to support sessions
+with and without repository access. The PR template exposes the assessment;
+there is no CI enforcement for memory declarations in v1.
+
+Keep external observations dated and attributed, and reconcile them with current
+architecture when learned. Conversation history must not be the only record of
+important project knowledge. Fresh-session recovery experiments are described in
+`COLLABORATION.md`; their outcomes remain to be verified after delivery.
