@@ -85,31 +85,29 @@ Chromium with its system libraries, and runs `npm run test:browser`. Both use
 read-only repository permissions. Browser setup adds downloads and CI time but no
 deployment service, browser matrix, or application build.
 
-The browser job is not a required merge check yet. Adding it to branch protection
-is a separate, explicitly authorized action; this implementation does not change
-GitHub settings or the delivery authorization gates.
+Live branch protection after the explicitly authorized promotion on 2026-09-30,
+read back and verified by the agent through GitHub's API:
 
-External configuration, verified by the user in the previous delivery cycle and
-reported on 2026-09-30:
+- `main` requires a pull request.
+- Required checks: **Validate static website** and **Verify browser interaction**.
+  Both are bound to GitHub Actions (app ID `15368`). These are the exact check
+  names, not the workflow name `Website CI` or YAML job IDs.
+- Strict/up-to-date checking remains enabled.
+- Required approving reviews: **0**. Administrator enforcement remains enabled.
+- Force pushes and branch deletion remain disabled.
+- A full before/after protection comparison confirmed that only the required
+  check list changed; all other protection fields were preserved.
 
-- `main` branch protection is enabled and changes require a pull request.
-- Required status check: **Validate static website**. Branches must be up to date
-  before merge.
-- Required approving reviews: **0**. Protection is enforced for administrators.
-- Force pushes and branch deletion are disallowed.
-- GitHub Pages remains configured from `main`, repository root.
+The browser job was initially non-required during commissioning. Promotion followed
+successful fault-injection checks and the successful main CI run on PR #3's merge
+commit `9e18941c840c1bbc7e90bd1d4d9f2894ee4a8126`. See `JOURNAL.md` for evidence.
+No workflow, application, or Pages settings changed during promotion. Future job
+renames must keep required-check names aligned. Current push and PR triggers cover
+normal delivery; introducing a merge queue would require a `merge_group` trigger.
 
-PR #1 merged through this protected flow as `26655a0`; the user verified that
-post-merge CI and Pages deployment both passed. These are externally verified
-historical observations supplied by the user, not settings defined by the workflow
-or independently rechecked during the original memory update. They supersede the
-earlier observation that `main` was unprotected. Recheck external configuration
-when a task depends on its current state; see `JOURNAL.md` for provenance.
-
-During Browser Verification v1 commissioning on 2026-09-30, the agent read the
-GitHub branch-protection API and reconfirmed the listed protection settings, with
-only **Validate static website** required. No settings were changed. This newer
-observation concerns protection only, not Pages configuration or historical run results.
+Pages was last reported by the user on 2026-09-30 as configured from `main`,
+repository root. That source setting was not rechecked or changed during promotion.
+External settings can change; recheck them when a task depends on their current state.
 
 **The enforced quality gate is before merge.** CI and Pages still run independently
 after merge; a failed post-merge CI run does not itself block Pages deployment.
@@ -124,7 +122,6 @@ remain necessary. Browser automation reliability varies by session and environme
 
 ## Possible next steps — not commitments
 
-- Consider making the browser job required after commissioning and explicit authorization.
 - Make post-merge deployment depend on successful verification.
 - Add post-deployment smoke checks.
 

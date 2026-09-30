@@ -143,6 +143,30 @@ GitHub Actions result; inspect the PR's checks before delivery authorization.
 The agent read GitHub's main branch-protection API on 2026-09-30 and confirmed that
 only **Validate static website** is required, with strict/up-to-date checks,
 administrator enforcement, zero required approving reviews, and force pushes and
-deletion disabled. No settings were changed. The browser job remains non-required;
-promotion needs separate explicit authorization. Merge and deployment are not
-authorized by this implementation task.
+deletion disabled. No settings were changed during commissioning. The browser job
+was non-required at that stage; promotion needed separate explicit authorization.
+The implementation task did not authorize merge or deployment.
+
+## Browser verification promoted to required — 2026-09-30
+
+After explicit user authorization, the agent updated only GitHub's required status
+checks configuration for `main`, adding **Verify browser interaction** from GitHub
+Actions (app ID `15368`) alongside **Validate static website** from the same app.
+
+Promotion evidence: the commissioning checks above rejected broken increments,
+persistence, and uncaught JavaScript errors. PR #3 merged as
+`9e18941c840c1bbc7e90bd1d4d9f2894ee4a8126`; its
+[main CI run](https://github.com/msulu/software-factory-lab/actions/runs/36689139586)
+passed both static validation and browser interaction. The agent verified these
+GitHub results directly, rather than inferring success from workflow configuration.
+
+Live read-back verification: **PASS**. Both exact required names have app ID
+`15368`; strict/up-to-date checks and administrator enforcement remain enabled.
+Comparing the complete protection responses before and after, excluding only the
+expected check-list addition, confirmed that no unrelated protection field changed.
+Workflow, application code, Pages settings, and other GitHub settings were not changed.
+
+This strengthens the pre-merge gate. Post-merge CI and Pages still run independently,
+and explicit human merge authorization is still required. The accompanying memory
+update is delivered through its own protected PR; promotion does not authorize
+merging that documentation PR.
